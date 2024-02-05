@@ -1,22 +1,17 @@
 import React, { useState } from 'react';
-import { Grid, Paper, Typography } from '@mui/material';
+import { Grid, Paper, TextField, Typography } from '@mui/material';
 import { Puzzle } from './SudokuGame';
 
 interface SudokuBoardProps {
   puzzle: Puzzle | null;
-  onCellSelect?: (row: number, col: number) => void;
+  onCellChange?: (row: number, col: number, value: number) => void;
 }
 
-const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellSelect }) => {
+const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellChange }) => {
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(
     null
   );
-  const handleCellClick = (rowIndex: number, cellIndex: number) => {
-    setSelectedCell([rowIndex, cellIndex]);
-    if (onCellSelect) {
-      onCellSelect(rowIndex, cellIndex);
-    }
-  };
+
   const shouldHighlight = (rowIndex: number, cellIndex: number) => {
     if (!selectedCell) return false;
     const [selectedRow, selectedCol] = selectedCell;
@@ -24,6 +19,13 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellSelect }) => {
       Math.floor(rowIndex / 3) === Math.floor(selectedRow / 3) &&
       Math.floor(cellIndex / 3) === Math.floor(selectedCol / 3);
     return rowIndex === selectedRow || cellIndex === selectedCol || inSameBox;
+  };
+
+  const handleCellValueChange = (row: number, col: number, value: string) => {
+    const newValue = parseInt(value, 10);
+    if (onCellChange && !isNaN(newValue) && newValue >= 1 && newValue <= 9) {
+      onCellChange(row, col, newValue);
+    }
   };
 
   if (!puzzle)
@@ -71,10 +73,10 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellSelect }) => {
                 position: 'relative',
                 backgroundColor: shouldHighlight(rowIndex, cellIndex)
                   ? 'rgba(255, 235, 59, 0.3)'
-                  : '',
+                  : 'rgba(255, 255, 255, 0.05)',
                 cursor: 'pointer',
               }}
-              onClick={() => handleCellClick(rowIndex, cellIndex)}
+              onClick={() => setSelectedCell([rowIndex, cellIndex])}
             >
               <Paper
                 elevation={cell[0] !== 0 ? 3 : 0}
@@ -99,15 +101,66 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellSelect }) => {
                   height: '100%',
                 }}
               >
-                <Typography
-                  sx={{
-                    fontSize: '1rem',
-                    userSelect: 'none',
-                    color: cell[0] !== 0 ? '#000' : 'rgba(0, 0, 0, 0.7)',
-                  }}
-                >
-                  {cell[0] !== 0 ? cell[0] : ''}
-                </Typography>
+                {cell[0] === 0 ? (
+                  <TextField
+                    variant="outlined"
+                    value=""
+                    onChange={(e) =>
+                      handleCellValueChange(rowIndex, cellIndex, e.target.value)
+                    }
+                    InputProps={{
+                      style: {
+                        textAlign: 'center',
+                        color: 'rgba(0, 0, 0, 0.7)',
+                        fontSize: '1rem',
+                        lineHeight: 'normal',
+                      },
+                    }}
+                    inputProps={{
+                      maxLength: 1,
+                      style: {
+                        textAlign: 'center',
+                        padding: '10px 0',
+                      },
+                    }}
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      '& .MuiInputBase-input': {
+                        textAlign: 'center',
+                        width: '100%',
+                        height: '100%',
+                      },
+                      '& .MuiOutlinedInput-root': {
+                        height: '100%',
+                        borderRadius: '0',
+                        alignItems: 'center',
+                      },
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        border: 'none',
+                      },
+                      '& .MuiInputBase-root': {
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                      },
+                    }}
+                  />
+                ) : (
+                  <Typography
+                    sx={{
+                      fontSize: '1rem',
+                      userSelect: 'none',
+                      color: '#000',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      height: '100%',
+                    }}
+                  >
+                    {cell[0]}
+                  </Typography>
+                )}
               </Paper>
             </Grid>
           ))}

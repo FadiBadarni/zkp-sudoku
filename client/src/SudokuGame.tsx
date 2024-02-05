@@ -83,10 +83,26 @@ const SudokuGame: React.FC = () => {
     return packets;
   }
 
+  const onCellChange = (row: number, col: number, value: number) => {
+    if (!puzzle) return; // Ensure there's a puzzle to work with
+
+    // Clone the current puzzle state to avoid direct mutation
+    const newPuzzle = puzzle.map((puzzleRow, rowIndex) =>
+      rowIndex === row
+        ? puzzleRow.map(
+            (cell, cellIndex) =>
+              cellIndex === col ? [value, value, value] : cell // Update the targeted cell
+          )
+        : puzzleRow
+    );
+
+    setPuzzle(newPuzzle); // Update the puzzle state with the new value
+  };
+
   return (
     <Grid container spacing={2} style={{ padding: '20px' }}>
       <Grid item xs={12} md={8}>
-        <SudokuBoard puzzle={puzzle} onCellSelect={() => {}} />
+        <SudokuBoard puzzle={puzzle} onCellChange={onCellChange} />
       </Grid>
 
       <Grid
