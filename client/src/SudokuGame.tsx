@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Button, Grid, Typography } from '@mui/material';
+import { Button, Grid } from '@mui/material';
 import SudokuBoard from './SudokuBoard';
 
 export type Card = number; // Represents a single "card" in the cell
@@ -15,10 +15,6 @@ const axiosInstance = axios.create({
 const SudokuGame: React.FC = () => {
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
   const [puzzleId, setPuzzleId] = useState<string | null>(null);
-  const [challenge, setChallenge] = useState<{
-    type: string;
-    index: number;
-  } | null>(null);
 
   const generatePuzzle = async () => {
     try {
@@ -34,26 +30,12 @@ const SudokuGame: React.FC = () => {
     }
   };
 
-  const requestChallenge = async () => {
-    if (!puzzleId) return;
+  const verifyKnowledge = async () => {
+    if (!puzzle || !puzzleId) return;
 
-    try {
-      const response = await axiosInstance.post('/request-challenge', {
-        puzzleId,
-      });
-      setChallenge(response.data.challenge);
-      // Now you have a challenge, you would show this to the user or handle it however you need
-      console.log('Challenge received:', response.data.challenge);
-    } catch (error) {
-      console.error('Error requesting a challenge:', error);
-    }
-  };
-
-  const handleRespondToChallenge = async () => {
-    if (!puzzle || !challenge || !puzzleId) return;
-
-    // Extract the specified sub-grid from the puzzle
-    const subGrid: PuzzleCell[][] = extractSubGrid(puzzle, challenge.index);
+    // Randomly choose a sub-grid, row, or column as an example of what you might verify.
+    const randomIndex = Math.floor(Math.random() * 9); // For example, choose a random sub-grid
+    const subGrid: PuzzleCell[][] = extractSubGrid(puzzle, randomIndex);
 
     // Flatten the sub-grid, select the first non-zero number from each cell, and filter out zeros
     const selectedCards: number[] = subGrid
@@ -66,16 +48,16 @@ const SudokuGame: React.FC = () => {
       () => Math.random() - 0.5
     );
 
-    // Assuming you have an endpoint to submit the shuffled cards
     try {
+      // Submit the shuffled cards for verification
       const response = await axiosInstance.post('/submit-response', {
         puzzleId,
         response: shuffledCards,
       });
-      console.log('Challenge response submitted:', response.data);
-      // Handle server response
+      console.log('Verification submitted:', response.data);
+      // Optionally handle server response here, like updating UI based on verification result
     } catch (error) {
-      console.error('Error submitting challenge response:', error);
+      console.error('Error submitting verification:', error);
     }
   };
 
@@ -118,31 +100,16 @@ const SudokuGame: React.FC = () => {
             Generate Puzzle
           </Button>
         </Grid>
+
         <Grid item>
           <Button
             variant="contained"
             color="secondary"
-            onClick={requestChallenge}
+            onClick={verifyKnowledge}
           >
-            Request Challenge
+            Verify Knowledge
           </Button>
         </Grid>
-        <Grid item>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={handleRespondToChallenge}
-          >
-            Respond to Challenge
-          </Button>
-        </Grid>
-        {challenge && (
-          <Grid item>
-            <Typography style={{ color: 'white' }}>
-              Challenge: {challenge.type} {challenge.index + 1}
-            </Typography>
-          </Grid>
-        )}
       </Grid>
     </Grid>
   );
