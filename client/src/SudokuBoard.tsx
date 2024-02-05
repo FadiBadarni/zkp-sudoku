@@ -1,38 +1,61 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Button, Grid } from '@mui/material';
+import { Button, Grid, Paper } from '@mui/material';
 
-interface Puzzle {
-  // Define the structure of the puzzle data you expect
-}
+type PuzzleCell = number | null;
+type PuzzleRow = PuzzleCell[];
+type Puzzle = PuzzleRow[];
 
 const axiosInstance = axios.create({
   baseURL: process.env.REACT_APP_SERVER_URL,
 });
 
 const SudokuBoard: React.FC = () => {
-  // If the puzzle has a known structure, use it here, else use 'any' or a proper type
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
 
   const generatePuzzle = async () => {
     try {
       const response = await axiosInstance.get<Puzzle>('/generate-puzzle');
-      setPuzzle(response.data); // The response.data will be typed as Puzzle
-      // You will need to render the puzzle on the grid below
+      setPuzzle(response.data);
     } catch (error) {
       console.error('Error fetching the puzzle:', error);
     }
   };
 
+  const renderSudokuBoard = () => {
+    if (!puzzle) return 'Generate a puzzle to start.';
+    return puzzle.map((row, rowIndex) => (
+      <Grid container item key={rowIndex} spacing={1} justifyContent="center">
+        {row.map((cell, cellIndex) => (
+          <Grid item key={cellIndex}>
+            <Paper
+              elevation={3}
+              square
+              sx={{
+                width: '2rem',
+                height: '2rem',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: cell !== null ? 'lightblue' : 'lightgrey',
+              }}
+            >
+              {cell !== null ? cell : ''}
+            </Paper>
+          </Grid>
+        ))}
+      </Grid>
+    ));
+  };
+
   return (
     <>
-      <Grid container spacing={2} sx={{ marginBottom: '20px' }}>
-        {/* Render the Sudoku board here based on the puzzle state */}
-      </Grid>
       <Button variant="contained" color="primary" onClick={generatePuzzle}>
         Generate Puzzle
       </Button>
-      {/* The verify button will probably need to be moved here as well */}
+      <Grid container spacing={2} sx={{ marginTop: '20px' }}>
+        {renderSudokuBoard()}
+      </Grid>
     </>
   );
 };

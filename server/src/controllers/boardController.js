@@ -9,7 +9,7 @@ const generatePuzzleRoute = (app) => {
             const readablePuzzle = rawPuzzle.map(cell => cell === null ? null : cell + 1);
             // Format the puzzle for the frontend if necessary
             const formattedPuzzle = formatPuzzle(readablePuzzle);
-            res.json({ puzzle: formattedPuzzle });
+            res.json(formattedPuzzle);
         } catch (error) {
             console.error('Error generating Sudoku puzzle:', error);
             res.status(500).send('Error generating Sudoku puzzle');
