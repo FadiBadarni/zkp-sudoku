@@ -6,7 +6,7 @@ import {
   createTheme,
   CssBaseline,
 } from '@mui/material';
-import SudokuBoard from './SudokuBoard';
+import SudokuGame from './SudokuGame';
 
 const darkTheme = createTheme({
   palette: {
@@ -36,7 +36,7 @@ function App() {
         <Typography variant="h2" component="h1" gutterBottom>
           ZKP Sudoku Protocol
         </Typography>
-        <SudokuBoard />
+        <SudokuGame />
       </Container>
     </ThemeProvider>
   );
