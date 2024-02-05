@@ -29,15 +29,16 @@ const generatePuzzleRoute = (app) => {
         }
     });
 
-    app.post('/submit-response', (req, res) => {
-        const { puzzleId, response: shuffledCards } = req.body;
+    app.post('/submit-verification', (req, res) => {
+        const { puzzleId, packets } = req.body;
         const puzzleData = puzzles[puzzleId];
 
         if (!puzzleData) {
             return res.status(404).send('Puzzle not found or expired');
         }
 
-        const isValid = verifyResponse(shuffledCards);
+        // Verify each packet
+        const isValid = packets.every(packet => verifyPacket(packet));
 
         res.json({ verified: isValid });
     });
@@ -62,42 +63,19 @@ function formatPuzzle(puzzleArray) {
     return puzzleRows;
 }
 
-function verifyResponse(shuffledCards) {
-    const numbersTracker = Array(9).fill(false);
+function verifyPacket(packet) {
+    // Remove zeros (unselected cards) and sort the remaining numbers
+    const filteredNumbers = packet.filter(number => number > 0).sort();
 
-    shuffledCards.forEach(card => {
-        if (card >= 1 && card <= 9) {
-            numbersTracker[card - 1] = true;
-        }
-    });
-
-    return numbersTracker.every(isPresent => isPresent);
-}
-
-
-function extractSubGrid(solution, index) {
-    const subGridSize = 3; // Each sub-grid is 3x3
-    const subGridsPerRow = Math.sqrt(solution.length); // Typically, 3 sub-grids per row for a 9x9 Sudoku
-
-    // Calculate the starting row and column for the sub-grid
-    const startRow = Math.floor(index / subGridsPerRow) * subGridSize;
-    const startCol = (index % subGridsPerRow) * subGridSize;
-
-    let subGrid = [];
-
-    for (let row = startRow; row < startRow + subGridSize; row++) {
-        for (let col = startCol; col < startCol + subGridSize; col++) {
-            // Initialize the sub-row arrays if they don't exist
-            if (!subGrid[row - startRow]) {
-                subGrid[row - startRow] = [];
-            }
-
-            // Push the cell value into the correct sub-row
-            subGrid[row - startRow].push(solution[row][col]);
+    // Check for duplicates in the filtered list
+    for (let i = 1; i < filteredNumbers.length; i++) {
+        if (filteredNumbers[i] === filteredNumbers[i - 1]) {
+            return false; // Found a duplicate, which violates Sudoku rules
         }
     }
 
-    return subGrid;
+    // Ensure all numbers are within the valid Sudoku range
+    return filteredNumbers.every(number => number >= 1 && number <= 9);
 }
 
 
