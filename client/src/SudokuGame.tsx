@@ -33,50 +33,54 @@ const SudokuGame: React.FC = () => {
   const verifyKnowledge = async () => {
     if (!puzzle || !puzzleId) return;
 
-    // Randomly choose a sub-grid, row, or column as an example of what you might verify.
-    const randomIndex = Math.floor(Math.random() * 9); // For example, choose a random sub-grid
-    const subGrid: PuzzleCell[][] = extractSubGrid(puzzle, randomIndex);
-
-    // Flatten the sub-grid, select the first non-zero number from each cell, and filter out zeros
-    const selectedCards: number[] = subGrid
-      .flat()
-      .map((cell) => cell.find((n) => n !== 0) || 0)
-      .filter((n) => n !== 0);
-
-    // Shuffle the selected cards
-    const shuffledCards: number[] = selectedCards.sort(
-      () => Math.random() - 0.5
-    );
+    // Assemble packets for all rows, columns, and sub-grids
+    const packets = assemblePackets(puzzle);
 
     try {
-      // Submit the shuffled cards for verification
-      const response = await axiosInstance.post('/submit-response', {
+      const response = await axiosInstance.post('/submit-verification', {
         puzzleId,
-        response: shuffledCards,
+        packets,
       });
       console.log('Verification submitted:', response.data);
-      // Optionally handle server response here, like updating UI based on verification result
     } catch (error) {
       console.error('Error submitting verification:', error);
     }
   };
 
-  function extractSubGrid(puzzle: Puzzle, index: number): PuzzleCell[][] {
-    const gridSize = 3; // Size of a sub-grid
-    const rowStart = Math.floor(index / 3) * gridSize;
-    const colStart = (index % 3) * gridSize;
+  function assemblePackets(puzzle: Puzzle): number[][] {
+    let packets: number[][] = [];
 
-    let subGrid: PuzzleCell[][] = [];
-
-    for (let row = rowStart; row < rowStart + gridSize; row++) {
-      let subGridRow: PuzzleCell[] = [];
-      for (let col = colStart; col < colStart + gridSize; col++) {
-        subGridRow.push(puzzle[row][col]);
+    // Assemble packets for rows and columns
+    for (let i = 0; i < 9; i++) {
+      let rowPacket = [],
+        columnPacket = [];
+      for (let j = 0; j < 9; j++) {
+        // Randomly select one card for the row and one for the column
+        rowPacket.push(puzzle[i][j][Math.floor(Math.random() * 3)]);
+        columnPacket.push(puzzle[j][i][Math.floor(Math.random() * 3)]);
       }
-      subGrid.push(subGridRow);
+      packets.push(rowPacket);
+      packets.push(columnPacket);
     }
 
-    return subGrid;
+    // Assemble packets for sub-grids
+    for (let sg = 0; sg < 9; sg++) {
+      let subGridPacket = [];
+      let startRow = Math.floor(sg / 3) * 3;
+      let startCol = (sg % 3) * 3;
+      for (let row = startRow; row < startRow + 3; row++) {
+        for (let col = startCol; col < startCol + 3; col++) {
+          // Randomly select one card for the sub-grid
+          subGridPacket.push(puzzle[row][col][Math.floor(Math.random() * 3)]);
+        }
+      }
+      packets.push(subGridPacket);
+    }
+
+    // shuffle each packet to further obfuscate the information
+    packets.forEach((packet) => packet.sort(() => Math.random() - 0.5));
+
+    return packets;
   }
 
   return (
