@@ -29,28 +29,18 @@ const generatePuzzleRoute = (app) => {
         }
     });
 
-    app.post('/request-challenge', (req, res) => {
-        const { puzzleId } = req.body;
+    app.post('/submit-response', (req, res) => {
+        const { puzzleId, response: shuffledCards } = req.body;
         const puzzleData = puzzles[puzzleId];
 
         if (!puzzleData) {
             return res.status(404).send('Puzzle not found or expired');
         }
 
-        // Example challenge generation
-        // For simplicity, this could be randomized or follow a specific sequence
-        const challengeType = ["row", "column", "sub-grid"][Math.floor(Math.random() * 3)];
-        const challengeIndex = Math.floor(Math.random() * 9); // Random index for row, column, or sub-grid
+        const isValid = verifyResponse(shuffledCards);
 
-        res.json({
-            challenge: {
-                type: challengeType,
-                index: challengeIndex
-            }
-        });
+        res.json({ verified: isValid });
     });
-
-
 
 };
 
@@ -71,6 +61,45 @@ function formatPuzzle(puzzleArray) {
     }
     return puzzleRows;
 }
+
+function verifyResponse(shuffledCards) {
+    const numbersTracker = Array(9).fill(false);
+
+    shuffledCards.forEach(card => {
+        if (card >= 1 && card <= 9) {
+            numbersTracker[card - 1] = true;
+        }
+    });
+
+    return numbersTracker.every(isPresent => isPresent);
+}
+
+
+function extractSubGrid(solution, index) {
+    const subGridSize = 3; // Each sub-grid is 3x3
+    const subGridsPerRow = Math.sqrt(solution.length); // Typically, 3 sub-grids per row for a 9x9 Sudoku
+
+    // Calculate the starting row and column for the sub-grid
+    const startRow = Math.floor(index / subGridsPerRow) * subGridSize;
+    const startCol = (index % subGridsPerRow) * subGridSize;
+
+    let subGrid = [];
+
+    for (let row = startRow; row < startRow + subGridSize; row++) {
+        for (let col = startCol; col < startCol + subGridSize; col++) {
+            // Initialize the sub-row arrays if they don't exist
+            if (!subGrid[row - startRow]) {
+                subGrid[row - startRow] = [];
+            }
+
+            // Push the cell value into the correct sub-row
+            subGrid[row - startRow].push(solution[row][col]);
+        }
+    }
+
+    return subGrid;
+}
+
 
 
 module.exports = generatePuzzleRoute;
