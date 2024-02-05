@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { Grid, Paper, Typography } from '@mui/material';
-
-type PuzzleCell = number | null;
-type PuzzleRow = PuzzleCell[];
-type Puzzle = PuzzleRow[];
+import { Puzzle } from './SudokuGame';
 
 interface SudokuBoardProps {
   puzzle: Puzzle | null;
@@ -14,7 +11,6 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellSelect }) => {
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(
     null
   );
-
   const handleCellClick = (rowIndex: number, cellIndex: number) => {
     setSelectedCell([rowIndex, cellIndex]);
     if (onCellSelect) {
@@ -25,7 +21,6 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellSelect }) => {
   const shouldHighlight = (rowIndex: number, cellIndex: number) => {
     if (!selectedCell) return false;
     const [selectedRow, selectedCol] = selectedCell;
-    // Highlight if same row, column, or in the same 3x3 grid
     const inSameBox =
       Math.floor(rowIndex / 3) === Math.floor(selectedRow / 3) &&
       Math.floor(cellIndex / 3) === Math.floor(selectedCol / 3);
@@ -83,7 +78,7 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellSelect }) => {
               onClick={() => handleCellClick(rowIndex, cellIndex)}
             >
               <Paper
-                elevation={cell !== null ? 3 : 0}
+                elevation={cell[0] !== 0 ? 3 : 0}
                 square
                 sx={{
                   position: 'absolute',
@@ -92,14 +87,14 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellSelect }) => {
                   right: 0,
                   bottom: 0,
                   backgroundColor:
-                    cell !== null
+                    cell[0] !== 0
                       ? 'rgba(100, 149, 237, 0.2)'
                       : 'rgba(255, 255, 255, 0.05)',
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
                   boxShadow:
-                    cell !== null ? '0 4px 8px rgba(0, 0, 0, 0.1)' : 'none',
+                    cell[0] !== 0 ? '0 4px 8px rgba(0, 0, 0, 0.1)' : 'none',
                   border: 'none',
                   width: '100%',
                   height: '100%',
@@ -109,10 +104,10 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellSelect }) => {
                   sx={{
                     fontSize: '1rem',
                     userSelect: 'none',
-                    color: cell !== null ? '#000' : 'rgba(0, 0, 0, 0.7)',
+                    color: cell[0] !== 0 ? '#000' : 'rgba(0, 0, 0, 0.7)',
                   }}
                 >
-                  {cell !== null ? cell : ''}
+                  {cell[0] !== 0 ? cell[0] : ''}
                 </Typography>
               </Paper>
             </Grid>

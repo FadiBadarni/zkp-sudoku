@@ -3,9 +3,10 @@ import axios from 'axios';
 import { Button, Typography } from '@mui/material';
 import SudokuBoard from './SudokuBoard';
 
-type PuzzleCell = number | null;
-type PuzzleRow = PuzzleCell[];
-type Puzzle = PuzzleRow[];
+export type Card = number; // Represents a single "card" in the cell
+export type PuzzleCell = Card[]; // a cell is an array of "cards"
+export type PuzzleRow = PuzzleCell[];
+export type Puzzle = PuzzleRow[];
 
 const axiosInstance = axios.create({
   baseURL: process.env.REACT_APP_SERVER_URL,
@@ -24,8 +25,9 @@ const SudokuGame: React.FC = () => {
     try {
       const response = await axiosInstance.get<{
         puzzleId: string;
-        puzzle: Puzzle;
+        puzzle: number[][][];
       }>('/generate-puzzle');
+
       setPuzzleId(response.data.puzzleId);
       setPuzzle(response.data.puzzle);
     } catch (error) {
