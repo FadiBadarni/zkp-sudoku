@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Grid, Paper, Typography } from '@mui/material';
 
 type PuzzleCell = number | null;
@@ -7,9 +7,31 @@ type Puzzle = PuzzleRow[];
 
 interface SudokuBoardProps {
   puzzle: Puzzle | null;
+  onCellSelect?: (row: number, col: number) => void;
 }
 
-const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle }) => {
+const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellSelect }) => {
+  const [selectedCell, setSelectedCell] = useState<[number, number] | null>(
+    null
+  );
+
+  const handleCellClick = (rowIndex: number, cellIndex: number) => {
+    setSelectedCell([rowIndex, cellIndex]);
+    if (onCellSelect) {
+      onCellSelect(rowIndex, cellIndex);
+    }
+  };
+
+  const shouldHighlight = (rowIndex: number, cellIndex: number) => {
+    if (!selectedCell) return false;
+    const [selectedRow, selectedCol] = selectedCell;
+    // Highlight if same row, column, or in the same 3x3 grid
+    const inSameBox =
+      Math.floor(rowIndex / 3) === Math.floor(selectedRow / 3) &&
+      Math.floor(cellIndex / 3) === Math.floor(selectedCol / 3);
+    return rowIndex === selectedRow || cellIndex === selectedCol || inSameBox;
+  };
+
   if (!puzzle)
     return (
       <Typography variant="h6" style={{ color: 'white' }}>
@@ -53,7 +75,12 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle }) => {
                     ? '2px solid rgba(255, 255, 255, 0.3)'
                     : 'none',
                 position: 'relative',
+                backgroundColor: shouldHighlight(rowIndex, cellIndex)
+                  ? 'rgba(255, 235, 59, 0.3)'
+                  : '',
+                cursor: 'pointer',
               }}
+              onClick={() => handleCellClick(rowIndex, cellIndex)}
             >
               <Paper
                 elevation={cell !== null ? 3 : 0}

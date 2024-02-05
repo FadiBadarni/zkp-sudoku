@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Button } from '@mui/material';
+import { Button, Typography } from '@mui/material';
 import SudokuBoard from './SudokuBoard';
 
 type PuzzleCell = number | null;
@@ -13,6 +13,10 @@ const axiosInstance = axios.create({
 
 const SudokuGame: React.FC = () => {
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
+  const [selectedCell, setSelectedCell] = useState<[number, number] | null>(
+    null
+  );
+  const [inputValue, setInputValue] = useState<string>('');
 
   const generatePuzzle = async () => {
     try {
@@ -23,12 +27,48 @@ const SudokuGame: React.FC = () => {
     }
   };
 
+  const handleCellSelect = (row: number, col: number) => {
+    setSelectedCell([row, col]);
+    //  enabling number input
+  };
+
+  const updateCell = (value: number) => {
+    if (selectedCell && puzzle) {
+      const [row, col] = selectedCell;
+      const newPuzzle = JSON.parse(JSON.stringify(puzzle));
+      newPuzzle[row][col] = value;
+      setPuzzle(newPuzzle);
+    }
+  };
+
   return (
     <>
-      <SudokuBoard puzzle={puzzle} />
+      <SudokuBoard puzzle={puzzle} onCellSelect={handleCellSelect} />
       <Button variant="contained" color="primary" onClick={generatePuzzle}>
         Generate Puzzle
       </Button>
+      {selectedCell && (
+        <>
+          <Typography style={{ color: 'white', marginTop: '10px' }}>
+            Selected Cell: Row {selectedCell[0] + 1}, Column{' '}
+            {selectedCell[1] + 1}
+          </Typography>
+          <input
+            type="number"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && inputValue) {
+                updateCell(parseInt(inputValue, 10));
+                setInputValue('');
+              }
+            }}
+            min="1"
+            max="9"
+            style={{ marginLeft: '10px' }}
+          />
+        </>
+      )}
     </>
   );
 };
