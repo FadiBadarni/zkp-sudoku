@@ -7,8 +7,8 @@ const generatePuzzleRoute = (app) => {
         try {
             const rawPuzzle = sudoku.makepuzzle();
             const rawSolution = sudoku.solvepuzzle(rawPuzzle);
-            const readablePuzzle = rawPuzzle.map(cell => cell === null ? null : cell + 1);
-            const readableSolution = rawSolution.map(cell => cell + 1);
+            const readablePuzzle = formatPuzzle(rawPuzzle);
+            const readableSolution = formatPuzzle(rawSolution);
 
             const puzzleId = generateUniqueId();
 
@@ -22,7 +22,7 @@ const generatePuzzleRoute = (app) => {
                 delete puzzles[puzzleId];
             }, 3600000);
 
-            res.json({ puzzleId, puzzle: formatPuzzle(readablePuzzle) });
+            res.json({ puzzleId, puzzle: readablePuzzle });
         } catch (error) {
             console.error('Error generating Sudoku puzzle:', error);
             res.status(500).send('Error generating Sudoku puzzle');
@@ -67,12 +67,18 @@ function generateUniqueId() {
 }
 
 function formatPuzzle(puzzleArray) {
-    let formatted = [];
-    let size = 9;
-    for (let i = 0; i < puzzleArray.length; i += size) {
-        formatted.push(puzzleArray.slice(i, i + size));
+    // Map each cell to an array of "cards"
+    const formatted = puzzleArray.map(cell =>
+        cell === null ? [0, 0, 0] : [cell + 1, cell + 1, cell + 1] // Adjust for 1-based indexing and create "cards"
+    );
+
+    // Format the puzzle into rows
+    let puzzleRows = [];
+    for (let i = 0; i < formatted.length; i += 9) {
+        puzzleRows.push(formatted.slice(i, i + 9));
     }
-    return formatted;
+    return puzzleRows;
 }
+
 
 module.exports = generatePuzzleRoute;
