@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Button, Grid } from '@mui/material';
+import { Button } from '@mui/material';
 import SudokuBoard from './SudokuBoard';
 
 type PuzzleCell = number | null;
@@ -25,16 +25,10 @@ const SudokuGame: React.FC = () => {
 
   return (
     <>
+      <SudokuBoard puzzle={puzzle} />
       <Button variant="contained" color="primary" onClick={generatePuzzle}>
         Generate Puzzle
       </Button>
-      <Grid
-        container
-        spacing={2}
-        sx={{ marginTop: '20px', justifyContent: 'center' }}
-      >
-        <SudokuBoard puzzle={puzzle} />
-      </Grid>
     </>
   );
 };
