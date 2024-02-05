@@ -1,13 +1,12 @@
-import React from 'react';
 import './App.css';
 import {
   Container,
   Typography,
-  Button,
-  Grid,
   ThemeProvider,
   createTheme,
+  CssBaseline,
 } from '@mui/material';
+import SudokuBoard from './SudokuBoard';
 
 const darkTheme = createTheme({
   palette: {
@@ -24,19 +23,20 @@ const darkTheme = createTheme({
 function App() {
   return (
     <ThemeProvider theme={darkTheme}>
-      <Container maxWidth="sm" style={{ marginTop: '20px' }}>
-        <Typography variant="h2" gutterBottom>
+      <CssBaseline />
+      <Container
+        maxWidth="lg"
+        sx={{
+          marginTop: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Typography variant="h2" component="h1" gutterBottom>
           ZKP Sudoku Protocol
         </Typography>
-        <Grid container spacing={3}>
-          {/* Grid for Sudoku board or other components */}
-        </Grid>
-        <Button variant="contained" color="primary" style={{ margin: '10px' }}>
-          Generate Puzzle
-        </Button>
-        <Button variant="contained" color="secondary">
-          Verify
-        </Button>
+        <SudokuBoard />
       </Container>
     </ThemeProvider>
   );
