@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Button, Typography } from '@mui/material';
+import { Button, Grid, Typography } from '@mui/material';
 import SudokuBoard from './SudokuBoard';
 
 export type Card = number; // Represents a single "card" in the cell
@@ -15,11 +15,10 @@ const axiosInstance = axios.create({
 const SudokuGame: React.FC = () => {
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
   const [puzzleId, setPuzzleId] = useState<string | null>(null);
-  const [selectedCell, setSelectedCell] = useState<[number, number] | null>(
-    null
-  );
-  const [inputValue, setInputValue] = useState<string>('');
-  const [verificationResult, setVerificationResult] = useState<string>('');
+  const [challenge, setChallenge] = useState<{
+    type: string;
+    index: number;
+  } | null>(null);
 
   const generatePuzzle = async () => {
     try {
@@ -35,88 +34,117 @@ const SudokuGame: React.FC = () => {
     }
   };
 
-  const handleCellSelect = (row: number, col: number) => {
-    setSelectedCell([row, col]);
-  };
-
-  const updateCell = (value: number) => {
-    if (selectedCell && puzzle) {
-      const [row, col] = selectedCell;
-      const newPuzzle = JSON.parse(JSON.stringify(puzzle));
-      newPuzzle[row][col] = value;
-      setPuzzle(newPuzzle);
-    }
-  };
-
-  const verifySolution = async (rowPacket: any, rowIndex: number) => {
+  const requestChallenge = async () => {
     if (!puzzleId) return;
 
     try {
-      const response = await axiosInstance.post('/verify-solution', {
+      const response = await axiosInstance.post('/request-challenge', {
         puzzleId,
-        packet: rowPacket,
-        rowIndex,
       });
-
-      setVerificationResult(
-        response.data.verified ? 'Verified' : 'Verification failed'
-      );
+      setChallenge(response.data.challenge);
+      // Now you have a challenge, you would show this to the user or handle it however you need
+      console.log('Challenge received:', response.data.challenge);
     } catch (error) {
-      console.error('Error verifying the solution:', error);
+      console.error('Error requesting a challenge:', error);
     }
   };
 
-  const handleVerifySelection = () => {
-    if (selectedCell && puzzle) {
-      const rowIndex = selectedCell[0];
-      const rowPacket = puzzle[rowIndex];
+  const handleRespondToChallenge = async () => {
+    if (!puzzle || !challenge || !puzzleId) return;
 
-      verifySolution(rowPacket, rowIndex);
+    // Extract the specified sub-grid from the puzzle
+    const subGrid: PuzzleCell[][] = extractSubGrid(puzzle, challenge.index);
+
+    // Flatten the sub-grid, select the first non-zero number from each cell, and filter out zeros
+    const selectedCards: number[] = subGrid
+      .flat()
+      .map((cell) => cell.find((n) => n !== 0) || 0)
+      .filter((n) => n !== 0);
+
+    // Shuffle the selected cards
+    const shuffledCards: number[] = selectedCards.sort(
+      () => Math.random() - 0.5
+    );
+
+    // Assuming you have an endpoint to submit the shuffled cards
+    try {
+      const response = await axiosInstance.post('/submit-response', {
+        puzzleId,
+        response: shuffledCards,
+      });
+      console.log('Challenge response submitted:', response.data);
+      // Handle server response
+    } catch (error) {
+      console.error('Error submitting challenge response:', error);
     }
   };
+
+  function extractSubGrid(puzzle: Puzzle, index: number): PuzzleCell[][] {
+    const gridSize = 3; // Size of a sub-grid
+    const rowStart = Math.floor(index / 3) * gridSize;
+    const colStart = (index % 3) * gridSize;
+
+    let subGrid: PuzzleCell[][] = [];
+
+    for (let row = rowStart; row < rowStart + gridSize; row++) {
+      let subGridRow: PuzzleCell[] = [];
+      for (let col = colStart; col < colStart + gridSize; col++) {
+        subGridRow.push(puzzle[row][col]);
+      }
+      subGrid.push(subGridRow);
+    }
+
+    return subGrid;
+  }
 
   return (
-    <>
-      <SudokuBoard puzzle={puzzle} onCellSelect={handleCellSelect} />
-      <Button variant="contained" color="primary" onClick={generatePuzzle}>
-        Generate Puzzle
-      </Button>
-      {verificationResult && (
-        <Typography style={{ color: 'white', marginTop: '10px' }}>
-          Verification Result: {verificationResult}
-        </Typography>
-      )}
-      {selectedCell && (
-        <>
-          <Typography style={{ color: 'white', marginTop: '10px' }}>
-            Selected Cell: Row {selectedCell[0] + 1}, Column{' '}
-            {selectedCell[1] + 1}
-          </Typography>
-          <input
-            type="number"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && inputValue) {
-                updateCell(parseInt(inputValue, 10));
-                setInputValue('');
-              }
-            }}
-            min="1"
-            max="9"
-            style={{ marginLeft: '10px' }}
-          />
-        </>
-      )}
-      <Button
-        variant="contained"
-        color="secondary"
-        onClick={handleVerifySelection}
-        disabled={!selectedCell}
+    <Grid container spacing={2} style={{ padding: '20px' }}>
+      <Grid item xs={12} md={8}>
+        <SudokuBoard puzzle={puzzle} onCellSelect={() => {}} />
+      </Grid>
+
+      <Grid
+        item
+        xs={12}
+        md={4}
+        container
+        direction="column"
+        justifyContent="flex-start"
+        alignItems="center"
+        spacing={2}
       >
-        Verify Selected Area
-      </Button>
-    </>
+        <Grid item>
+          <Button variant="contained" color="primary" onClick={generatePuzzle}>
+            Generate Puzzle
+          </Button>
+        </Grid>
+        <Grid item>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={requestChallenge}
+          >
+            Request Challenge
+          </Button>
+        </Grid>
+        <Grid item>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleRespondToChallenge}
+          >
+            Respond to Challenge
+          </Button>
+        </Grid>
+        {challenge && (
+          <Grid item>
+            <Typography style={{ color: 'white' }}>
+              Challenge: {challenge.type} {challenge.index + 1}
+            </Typography>
+          </Grid>
+        )}
+      </Grid>
+    </Grid>
   );
 };
 

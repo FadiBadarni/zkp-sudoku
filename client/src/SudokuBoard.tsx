@@ -17,7 +17,6 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellSelect }) => {
       onCellSelect(rowIndex, cellIndex);
     }
   };
-
   const shouldHighlight = (rowIndex: number, cellIndex: number) => {
     if (!selectedCell) return false;
     const [selectedRow, selectedCol] = selectedCell;
