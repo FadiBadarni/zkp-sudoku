@@ -13,6 +13,7 @@ const axiosInstance = axios.create({
 
 const SudokuGame: React.FC = () => {
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
+  const [puzzleId, setPuzzleId] = useState<string | null>(null);
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(
     null
   );
@@ -20,8 +21,12 @@ const SudokuGame: React.FC = () => {
 
   const generatePuzzle = async () => {
     try {
-      const response = await axiosInstance.get<Puzzle>('/generate-puzzle');
-      setPuzzle(response.data);
+      const response = await axiosInstance.get<{
+        puzzleId: string;
+        puzzle: Puzzle;
+      }>('/generate-puzzle');
+      setPuzzleId(response.data.puzzleId);
+      setPuzzle(response.data.puzzle);
     } catch (error) {
       console.error('Error fetching the puzzle:', error);
     }
@@ -47,6 +52,11 @@ const SudokuGame: React.FC = () => {
       <Button variant="contained" color="primary" onClick={generatePuzzle}>
         Generate Puzzle
       </Button>
+      {puzzleId && (
+        <Typography style={{ color: 'white', marginTop: '10px' }}>
+          Puzzle ID: {puzzleId}
+        </Typography>
+      )}
       {selectedCell && (
         <>
           <Typography style={{ color: 'white', marginTop: '10px' }}>
