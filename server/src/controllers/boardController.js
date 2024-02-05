@@ -29,38 +29,30 @@ const generatePuzzleRoute = (app) => {
         }
     });
 
-    app.post('/verify-solution', (req, res) => {
-        const { puzzleId, packet, rowIndex } = req.body;
+    app.post('/request-challenge', (req, res) => {
+        const { puzzleId } = req.body;
         const puzzleData = puzzles[puzzleId];
 
         if (!puzzleData) {
             return res.status(404).send('Puzzle not found or expired');
         }
 
-        const verificationResult = verifyPacket(puzzleData.solution, packet, rowIndex);
-        res.json({ verified: verificationResult });
+        // Example challenge generation
+        // For simplicity, this could be randomized or follow a specific sequence
+        const challengeType = ["row", "column", "sub-grid"][Math.floor(Math.random() * 3)];
+        const challengeIndex = Math.floor(Math.random() * 9); // Random index for row, column, or sub-grid
+
+        res.json({
+            challenge: {
+                type: challengeType,
+                index: challengeIndex
+            }
+        });
     });
+
+
+
 };
-
-function verifyPacket(solution, packet, rowIndex) {
-    // Extract the row from the solution that corresponds to the selected cell.
-    let solutionRow = solution.slice(rowIndex * 9, (rowIndex + 1) * 9);
-
-    // Iterate through the user's input, checking only the filled values against the solution.
-    for (let i = 0; i < packet.length; i++) {
-        if (packet[i] === null) continue; // Skip null values which represent unfilled cells.
-
-        // Verify the filled values. Adjust for 0-indexed format as necessary.
-        if (packet[i] !== solutionRow[i] ) {
-            return false; // A discrepancy invalidates the verification.
-        }
-    }
-
-    // If the loop completes without returning false, the packet is valid.
-    return true;
-}
-
-
 
 function generateUniqueId() {
     return Math.random().toString(36).substring(2, 11);
