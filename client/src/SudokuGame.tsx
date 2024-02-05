@@ -18,6 +18,7 @@ const SudokuGame: React.FC = () => {
     null
   );
   const [inputValue, setInputValue] = useState<string>('');
+  const [verificationResult, setVerificationResult] = useState<string>('');
 
   const generatePuzzle = async () => {
     try {
@@ -34,7 +35,6 @@ const SudokuGame: React.FC = () => {
 
   const handleCellSelect = (row: number, col: number) => {
     setSelectedCell([row, col]);
-    //  enabling number input
   };
 
   const updateCell = (value: number) => {
@@ -46,15 +46,42 @@ const SudokuGame: React.FC = () => {
     }
   };
 
+  const verifySolution = async (rowPacket: any, rowIndex: number) => {
+    if (!puzzleId) return;
+
+    try {
+      const response = await axiosInstance.post('/verify-solution', {
+        puzzleId,
+        packet: rowPacket,
+        rowIndex,
+      });
+
+      setVerificationResult(
+        response.data.verified ? 'Verified' : 'Verification failed'
+      );
+    } catch (error) {
+      console.error('Error verifying the solution:', error);
+    }
+  };
+
+  const handleVerifySelection = () => {
+    if (selectedCell && puzzle) {
+      const rowIndex = selectedCell[0];
+      const rowPacket = puzzle[rowIndex];
+
+      verifySolution(rowPacket, rowIndex);
+    }
+  };
+
   return (
     <>
       <SudokuBoard puzzle={puzzle} onCellSelect={handleCellSelect} />
       <Button variant="contained" color="primary" onClick={generatePuzzle}>
         Generate Puzzle
       </Button>
-      {puzzleId && (
+      {verificationResult && (
         <Typography style={{ color: 'white', marginTop: '10px' }}>
-          Puzzle ID: {puzzleId}
+          Verification Result: {verificationResult}
         </Typography>
       )}
       {selectedCell && (
@@ -79,6 +106,14 @@ const SudokuGame: React.FC = () => {
           />
         </>
       )}
+      <Button
+        variant="contained"
+        color="secondary"
+        onClick={handleVerifySelection}
+        disabled={!selectedCell}
+      >
+        Verify Selected Area
+      </Button>
     </>
   );
 };
