@@ -27,8 +27,11 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
   };
 
   const handleCellValueChange = (row: number, col: number, value: string) => {
-    const newValue = parseInt(value, 10);
-    if (onCellChange && !isNaN(newValue) && newValue >= 1 && newValue <= 9) {
+    // Convert the input value to an integer or use 0 if the input is empty
+    const newValue = value ? parseInt(value, 10) : 0;
+
+    // Call onCellChange only if the value is within the valid range or is being cleared
+    if (onCellChange && !isNaN(newValue) && newValue >= 0 && newValue <= 9) {
       onCellChange(row, col, newValue);
     }
   };
@@ -103,7 +106,7 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
                 {editableCells && editableCells[rowIndex][cellIndex] ? (
                   <TextField
                     variant="outlined"
-                    defaultValue={cell[0] !== 0 ? cell[0] : ''}
+                    value={cell[0] !== 0 ? cell[0].toString() : ''}
                     onChange={(e) =>
                       handleCellValueChange(rowIndex, cellIndex, e.target.value)
                     }

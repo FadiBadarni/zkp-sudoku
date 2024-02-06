@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Button, Grid } from '@mui/material';
+import { Button, Grid, Typography } from '@mui/material';
 import SudokuBoard from './SudokuBoard';
 
 export type Card = number; // Represents a single "card" in the cell
@@ -120,12 +120,22 @@ const SudokuGame: React.FC = () => {
         alignItems="center"
         spacing={2}
       >
+        <Typography variant="h6" gutterBottom style={{ color: 'white' }}>
+          Sudoku Verification Game
+        </Typography>
+        <Typography
+          variant="body1"
+          style={{ marginBottom: '20px', color: 'lightgray' }}
+        >
+          Generate a puzzle and try to solve it. Click "Verify Knowledge" to
+          check if your solution adheres to Sudoku rules without revealing the
+          solution.
+        </Typography>
         <Grid item>
           <Button variant="contained" color="primary" onClick={generatePuzzle}>
             Generate Puzzle
           </Button>
         </Grid>
-
         <Grid item>
           <Button
             variant="contained"
@@ -135,6 +145,27 @@ const SudokuGame: React.FC = () => {
             Verify Knowledge
           </Button>
         </Grid>
+        <Typography
+          variant="body2"
+          style={{ marginTop: '20px', color: 'gray' }}
+        >
+          Instructions:
+        </Typography>
+        <ul style={{ color: 'gray' }}>
+          <li>Fill in the Sudoku board with numbers 1-9.</li>
+          <li>
+            Each row, column, and 3x3 grid must contain all numbers from 1 to 9
+            without repetition.
+          </li>
+          <li>Use "Verify Knowledge" to check your solution at any time.</li>
+        </ul>
+        <Typography
+          variant="body2"
+          style={{ marginTop: '20px', color: 'gray' }}
+        >
+          Note: Verification does not provide the solution but checks for rule
+          adherence.
+        </Typography>
       </Grid>
     </Grid>
   );
