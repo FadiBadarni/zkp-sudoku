@@ -4,10 +4,15 @@ import { Puzzle } from './SudokuGame';
 
 interface SudokuBoardProps {
   puzzle: Puzzle | null;
+  editableCells: boolean[][] | null;
   onCellChange?: (row: number, col: number, value: number) => void;
 }
 
-const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellChange }) => {
+const SudokuBoard: React.FC<SudokuBoardProps> = ({
+  puzzle,
+  editableCells,
+  onCellChange,
+}) => {
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(
     null
   );
@@ -101,10 +106,10 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellChange }) => {
                   height: '100%',
                 }}
               >
-                {cell[0] === 0 ? (
+                {editableCells && editableCells[rowIndex][cellIndex] ? (
                   <TextField
                     variant="outlined"
-                    value=""
+                    defaultValue={cell[0] !== 0 ? cell[0] : ''}
                     onChange={(e) =>
                       handleCellValueChange(rowIndex, cellIndex, e.target.value)
                     }
@@ -116,13 +121,7 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellChange }) => {
                         lineHeight: 'normal',
                       },
                     }}
-                    inputProps={{
-                      maxLength: 1,
-                      style: {
-                        textAlign: 'center',
-                        padding: '10px 0',
-                      },
-                    }}
+                    inputProps={{ maxLength: 1 }}
                     sx={{
                       width: '100%',
                       height: '100%',
@@ -130,6 +129,7 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({ puzzle, onCellChange }) => {
                         textAlign: 'center',
                         width: '100%',
                         height: '100%',
+                        cursor: 'pointer',
                       },
                       '& .MuiOutlinedInput-root': {
                         height: '100%',

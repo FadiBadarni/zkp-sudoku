@@ -15,6 +15,7 @@ const axiosInstance = axios.create({
 const SudokuGame: React.FC = () => {
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
   const [puzzleId, setPuzzleId] = useState<string | null>(null);
+  const [editableCells, setEditableCells] = useState<boolean[][] | null>(null);
 
   const generatePuzzle = async () => {
     try {
@@ -25,6 +26,11 @@ const SudokuGame: React.FC = () => {
 
       setPuzzleId(response.data.puzzleId);
       setPuzzle(response.data.puzzle);
+
+      const initialEditableCells = response.data.puzzle.map(
+        (row) => row.map((cell) => cell[0] === 0) // cell[0] is the value, and 0 means empty
+      );
+      setEditableCells(initialEditableCells);
     } catch (error) {
       console.error('Error fetching the puzzle:', error);
     }
@@ -84,25 +90,24 @@ const SudokuGame: React.FC = () => {
   }
 
   const onCellChange = (row: number, col: number, value: number) => {
-    if (!puzzle) return; // Ensure there's a puzzle to work with
+    if (!puzzle || !editableCells) return;
 
-    // Clone the current puzzle state to avoid direct mutation
-    const newPuzzle = puzzle.map((puzzleRow, rowIndex) =>
-      rowIndex === row
-        ? puzzleRow.map(
-            (cell, cellIndex) =>
-              cellIndex === col ? [value, value, value] : cell // Update the targeted cell
-          )
-        : puzzleRow
-    );
-
-    setPuzzle(newPuzzle); // Update the puzzle state with the new value
+    if (editableCells[row][col]) {
+      // Check if the cell was initially empty
+      const newPuzzle = [...puzzle];
+      newPuzzle[row][col] = [value, value, value]; // Update only if editable
+      setPuzzle(newPuzzle);
+    }
   };
 
   return (
     <Grid container spacing={2} style={{ padding: '20px' }}>
       <Grid item xs={12} md={8}>
-        <SudokuBoard puzzle={puzzle} onCellChange={onCellChange} />
+        <SudokuBoard
+          puzzle={puzzle}
+          onCellChange={onCellChange}
+          editableCells={editableCells}
+        />
       </Grid>
 
       <Grid
