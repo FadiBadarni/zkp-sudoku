@@ -48,6 +48,7 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
         maxWidth: '450px',
         width: '100%',
         margin: 'auto',
+        backgroundColor: '#121212',
       }}
     >
       {puzzle.map((row, rowIndex) => (
@@ -57,10 +58,6 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
           key={rowIndex}
           justifyContent="center"
           sx={{
-            borderBottom:
-              (rowIndex + 1) % 3 === 0 && rowIndex !== 8
-                ? '2px solid rgba(255, 255, 255, 0.3)'
-                : 'none',
             width: '100%',
           }}
         >
@@ -71,15 +68,11 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
               sx={{
                 width: '11.11%',
                 paddingBottom: '11.11%',
-                borderRight:
-                  (cellIndex + 1) % 3 === 0 && cellIndex !== 8
-                    ? '2px solid rgba(255, 255, 255, 0.3)'
-                    : 'none',
                 position: 'relative',
-                backgroundColor: shouldHighlight(rowIndex, cellIndex)
-                  ? 'rgba(255, 235, 59, 0.3)'
-                  : 'rgba(255, 255, 255, 0.05)',
                 cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: '#313131',
+                },
               }}
               onClick={() => setSelectedCell([rowIndex, cellIndex])}
             >
@@ -92,18 +85,19 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  backgroundColor:
-                    cell[0] !== 0
-                      ? 'rgba(100, 149, 237, 0.2)'
-                      : 'rgba(255, 255, 255, 0.05)',
+                  backgroundColor: shouldHighlight(rowIndex, cellIndex)
+                    ? '#646464' // Highlighted background color
+                    : cell[0] !== 0
+                    ? '#333333' // Non-highlighted, filled cell background color
+                    : '#2D2D2D', // Non-highlighted, empty cell background color
                   display: 'flex',
                   justifyContent: 'center',
                   alignItems: 'center',
-                  boxShadow:
-                    cell[0] !== 0 ? '0 4px 8px rgba(0, 0, 0, 0.1)' : 'none',
-                  border: 'none',
+                  color: '#E0E0E0',
+                  boxShadow: 'none',
                   width: '100%',
                   height: '100%',
+                  transition: 'background-color 0.3s ease',
                 }}
               >
                 {editableCells && editableCells[rowIndex][cellIndex] ? (
@@ -113,31 +107,33 @@ const SudokuBoard: React.FC<SudokuBoardProps> = ({
                     onChange={(e) =>
                       handleCellValueChange(rowIndex, cellIndex, e.target.value)
                     }
+                    autoComplete="off"
                     InputProps={{
                       style: {
                         textAlign: 'center',
                         color: 'rgba(0, 0, 0, 0.7)',
                         fontSize: '1rem',
                         lineHeight: 'normal',
+                        width: '100%',
+                        height: '100%',
                       },
                     }}
                     inputProps={{ maxLength: 1 }}
                     sx={{
                       width: '100%',
                       height: '100%',
+
                       '& .MuiInputBase-input': {
                         textAlign: 'center',
-                        width: '100%',
-                        height: '100%',
+                        color: '#E0E0E0',
                         cursor: 'pointer',
                       },
                       '& .MuiOutlinedInput-root': {
                         height: '100%',
-                        borderRadius: '0',
                         alignItems: 'center',
                       },
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        border: 'none',
+                      '.MuiOutlinedInput-notchedOutline': {
+                        borderRadius: 0,
                       },
                       '& .MuiInputBase-root': {
                         height: '100%',
