@@ -37,21 +37,20 @@ const generatePuzzleRoute = (app) => {
             return res.status(404).send('Puzzle not found or expired');
         }
 
-        // Process each packet with detailed analysis for partial solutions
+        // Process each packet with detailed analysis
         const detailedResults = packets.map((packet, i) => {
-            // Determine the type based on the index
             const type = i < 9 ? "row" : i < 18 ? "column" : "subgrid";
-            const adjustedIndex = i < 9 ? i : i % 9; // Adjust index for rows, columns, and subgrids
-            return verifyPacket(packet, adjustedIndex, type);
+            return verifyPacket(packet,  type);
         });
 
         const isValid = detailedResults.every(result => result.isValid);
 
         res.json({
             verified: isValid,
-            details: detailedResults.filter(result => !result.isValid) // Provide details for invalid packets
+            details: detailedResults.filter(result => !result.isValid) // Provide detailed issues
         });
     });
+
 
 
 };
@@ -74,23 +73,35 @@ function formatPuzzle(puzzleArray) {
     return puzzleRows;
 }
 
-function verifyPacket(packet, index, type) {
-    // Remove zeros (unselected cards) and sort the remaining numbers
+function verifyPacket(packet, type) {
     const sortedNumbers = packet.filter(number => number > 0).sort((a, b) => a - b);
-    const duplicates = sortedNumbers.filter((number, i, arr) => arr.indexOf(number) !== i && arr.lastIndexOf(number) === i);
+    let duplicates = [];
+
+    // Identify duplicates in the packet
+    sortedNumbers.forEach((number, i, arr) => {
+        if (arr.indexOf(number) !== i && arr.lastIndexOf(number) === i) {
+            duplicates.push(number);
+        }
+    });
+
     const hasDuplicates = duplicates.length > 0;
 
-    // A packet is valid if it does not contain duplicates
-    const isValid = !hasDuplicates;
+    // Generate explanations and suggestions based on the type and duplicates found
+    let explanations = [];
+    let suggestions = [];
+
+    duplicates.forEach(duplicate => {
+        explanations.push(`The number ${duplicate} appears more than once in the same ${type}.`);
+        suggestions.push(`Review the ${type} to ensure that ${duplicate} only appears once. Use elimination methods to deduce the correct placement of ${duplicate}.`);
+    });
 
     return {
-        isValid,
+        isValid: !hasDuplicates,
         type,
-        index,
-        duplicates,
+        duplicates: duplicates.map(number => ({ number })),
+        explanation: explanations.join(" "),
+        suggestion: suggestions.join(" "),
     };
 }
-
-
 
 module.exports = generatePuzzleRoute;
