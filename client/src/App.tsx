@@ -33,7 +33,7 @@ function App() {
           alignItems: 'center',
         }}
       >
-        <Typography variant="h2" component="h1" gutterBottom>
+        <Typography variant="h4" component="h1" gutterBottom>
           ZKP Sudoku Protocol
         </Typography>
         <SudokuGame />
