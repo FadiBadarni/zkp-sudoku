@@ -37,11 +37,22 @@ const generatePuzzleRoute = (app) => {
             return res.status(404).send('Puzzle not found or expired');
         }
 
-        // Verify each packet
-        const isValid = packets.every(packet => verifyPacket(packet));
+        // Process each packet with detailed analysis for partial solutions
+        const detailedResults = packets.map((packet, i) => {
+            // Determine the type based on the index
+            const type = i < 9 ? "row" : i < 18 ? "column" : "subgrid";
+            const adjustedIndex = i < 9 ? i : i % 9; // Adjust index for rows, columns, and subgrids
+            return verifyPacket(packet, adjustedIndex, type);
+        });
 
-        res.json({ verified: isValid });
+        const isValid = detailedResults.every(result => result.isValid);
+
+        res.json({
+            verified: isValid,
+            details: detailedResults.filter(result => !result.isValid) // Provide details for invalid packets
+        });
     });
+
 
 };
 
@@ -63,19 +74,21 @@ function formatPuzzle(puzzleArray) {
     return puzzleRows;
 }
 
-function verifyPacket(packet) {
+function verifyPacket(packet, index, type) {
     // Remove zeros (unselected cards) and sort the remaining numbers
-    const filteredNumbers = packet.filter(number => number > 0).sort();
+    const sortedNumbers = packet.filter(number => number > 0).sort((a, b) => a - b);
+    const duplicates = sortedNumbers.filter((number, i, arr) => arr.indexOf(number) !== i && arr.lastIndexOf(number) === i);
+    const hasDuplicates = duplicates.length > 0;
 
-    // Check for duplicates in the filtered list
-    for (let i = 1; i < filteredNumbers.length; i++) {
-        if (filteredNumbers[i] === filteredNumbers[i - 1]) {
-            return false; // Found a duplicate, which violates Sudoku rules
-        }
-    }
+    // A packet is valid if it does not contain duplicates
+    const isValid = !hasDuplicates;
 
-    // Ensure all numbers are within the valid Sudoku range
-    return filteredNumbers.every(number => number >= 1 && number <= 9);
+    return {
+        isValid,
+        type,
+        index,
+        duplicates,
+    };
 }
 
 
