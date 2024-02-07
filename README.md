@@ -23,7 +23,7 @@ cd client
 ```
 2. Create a .env file with the following content to specify the server URL:
 ```
-REACT_APP_SERVER_URL=http://localhost:4000
+REACT_APP_SERVER_URL=http://localhost:3000
 ```
 3. Install dependencies and start the application:
 ```
